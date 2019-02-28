@@ -24,7 +24,7 @@ def main():
     parser.add_argument("--lr", type=float, default=0.001)
     parser.add_argument("--len_seq", type=int, default=85)
     parser.add_argument("--len_rel", type=int, default=19)
-    parser.add_argument("--nepoch", type=int ,default=100)
+    parser.add_argument("--epoch", type=int ,default=100)
     parser.add_argument("--num_workers", type=int, default=4)
     parser.add_argument("--eval_every", type=int, default=10)
     parser.add_argument("--dropout_rate", type=float, default=0.4)
@@ -43,7 +43,8 @@ def main():
     args = parser.parse_args()
     args.kernel_sizes = list(map(int, args.kernel_sizes.split(',')))
     print(args)
-    torch.cuda.set_device(args.gpu)
+    if args.gpu >= 0:
+        torch.cuda.set_device(args.gpu)
     args.word_embedding = loadGloveModel(args.embedding)
 
     dataset = SemEvalDataset(args.train_filename, max_len=args.len_seq)
@@ -54,16 +55,19 @@ def main():
     args.len_word = len(dataset.word_to_idx)
     args.len_rel = len(dataset.tag_to_idx)
 
-    model = CNN(args).cuda()
-    train(args, dataloader, model)
+    if args.gpu >= 0:
+        model = CNN(args).cuda()
+    else:
+        model = CNN(args)
+    model = train(args, dataloader, dataloader_val, model)
+    eval(args, dataloader_val, model)
 
-def train(args, dataloader, model):
+def train(args, dataloader, dataloader_val, model):
     if args.optimizer == 'adam':
         optimizer = optim.Adam(model.parameters(),lr=args.lr)
     elif args.optimizer == 'sgd':
         optimizer = optim.SGD(model.parameters(),lr=args.lr)
     loss_func = nn.CrossEntropyLoss()
-
 
     best_eval_acc = 0.
     # Training
@@ -71,19 +75,22 @@ def train(args, dataloader, model):
     total_acc = 0.
     ntrain_batch = 0
     model.train()
-    for i in range(args.nepoch):
-        ct = 0
+    for i in range(args.epoch):
         for (seq, w_pos, e1, e2, r) in dataloader:
-            ct += 1
-            if ct % 100 == 0:
-                print(ct)
-
             ntrain_batch += 1
-            seq = Variable(seq).cuda()
-            e1 = Variable(e1).cuda()
-            e2 = Variable(e2).cuda()
-            w_pos = Variable(w_pos).cuda()
-            r = Variable(r).cuda()
+            if args.gpu >= 0:
+                seq = Variable(seq).cuda()
+                e1 = Variable(e1).cuda()
+                e2 = Variable(e2).cuda()
+                w_pos = Variable(w_pos).cuda()
+                r = Variable(r).cuda()
+            else:
+                seq = Variable(seq)
+                e1 = Variable(e1)
+                e2 = Variable(e2)
+                w_pos = Variable(w_pos)
+                r = Variable(r)
+            
             r = r.view(r.size(0))
 
             pred = model(seq, w_pos, e1, e2)
@@ -97,6 +104,44 @@ def train(args, dataloader, model):
             optimizer.step()
         print("Epoch: {}, Training loss : {:.4}, acc: {:.4}".\
         format(i, total_loss/ntrain_batch, total_acc / ntrain_batch))
+        if (i+1) % args.eval_every == 0:
+            eval(args, dataloader_val, model)
+    return model
+
+def eval(args, dataloader, model):
+    loss_func = nn.CrossEntropyLoss()
+    
+    # Training
+    total_loss = 0.
+    total_acc = 0.
+    ntrain_batch = 0
+    model.eval()
+    for (seq, w_pos, e1, e2, r) in dataloader:
+        ntrain_batch += 1
+        if args.gpu >= 0:
+            seq = Variable(seq).cuda()
+            e1 = Variable(e1).cuda()
+            e2 = Variable(e2).cuda()
+            w_pos = Variable(w_pos).cuda()
+            r = Variable(r).cuda()
+        else:
+            seq = Variable(seq)
+            e1 = Variable(e1)
+            e2 = Variable(e2)
+            w_pos = Variable(w_pos)
+            r = Variable(r)
+        
+        r = r.view(r.size(0))
+
+        pred = model(seq, w_pos, e1, e2)
+        l = loss_func(pred, r)
+        acc = accuracy(pred, r)
+        total_acc += acc
+        total_loss += l.item()
+
+    print("Val loss : {:.4}, acc: {:.4}".\
+    format(total_loss/ntrain_batch, total_acc / ntrain_batch))
+
 
 if __name__ == '__main__':
     main()
