@@ -21,7 +21,9 @@ def main():
     parser.add_argument("--dp", dest="dim_pos", type=int, default=5)
     parser.add_argument("--dc", dest="dim_conv", type=int, default=32)
     parser.add_argument("--dw", dest="dim_word", type=int, default=100)
-    parser.add_argument("--lr", type=float, default=0.001)
+    parser.add_argument("--lr", type=float, default=0.01)
+    parser.add_argument("--l2", type=float, default=0.1)
+    parser.add_argument("--l1", type=float, default=0.05)
     parser.add_argument("--len_seq", type=int, default=85)
     parser.add_argument("--len_rel", type=int, default=19)
     parser.add_argument("--epoch", type=int ,default=100)
@@ -64,9 +66,9 @@ def main():
 
 def train(args, dataloader, dataloader_val, model):
     if args.optimizer == 'adam':
-        optimizer = optim.Adam(model.parameters(),lr=args.lr)
+        optimizer = optim.Adam(model.parameters(),lr=args.lr,weight_decay=args.l2)
     elif args.optimizer == 'sgd':
-        optimizer = optim.SGD(model.parameters(),lr=args.lr)
+        optimizer = optim.SGD(model.parameters(),lr=args.lr, weight_decay=args.l2)
     loss_func = nn.CrossEntropyLoss()
 
     best_eval_acc = 0.
