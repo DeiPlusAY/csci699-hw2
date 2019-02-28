@@ -59,18 +59,18 @@ def read_test(file_name):
 
 def loadGloveModel(gloveFile):
     print ("Loading Glove Model")
-    f = open(gloveFile,'r')
-    model = {}
+    f = open(gloveFile,'r').readlines()
+    model = np.zeros((len(f) + 1, 100))
+    word_to_idx = {}
+    word_to_idx['<UNK>'] = 0
     for line in f:
         splitLine = line.split()
         word = splitLine[0]
+        word_to_idx[word] = len(word_to_idx)
         embedding = np.array([float(val) for val in splitLine[1:]])
-        model[word] = embedding
+        model[word_to_idx[word]] = embedding
     print ("Done.",len(model)," words loaded!")
-    word_to_idx = {}
-    word_to_idx['<UNK>'] = 0
-    for w in model.keys():
-        word_to_idx[w] = len(word_to_idx)
+
     return model, word_to_idx
 
 class SemEvalDataset(torch.utils.data.Dataset):

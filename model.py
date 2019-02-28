@@ -22,6 +22,7 @@ class CNN(nn.Module):
 
         # self layers
         self.word_embedding = nn.Embedding(self.len_word, self.dim_word)
+        self.word_embedding.weight.data.copy_(torch.from_numpy(args.word_embedding))
         self.pos_embedding = nn.Embedding(3, self.dim_pos)
         self.dropout = nn.Dropout(args.dropout_rate)
 

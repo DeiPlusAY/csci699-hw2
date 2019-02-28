@@ -49,6 +49,7 @@ def main():
         torch.cuda.set_device(args.gpu)
     args.word_to_idx = None
     args.word_embedding, args.word_to_idx = loadGloveModel(args.embedding)
+    args.len_word = len(args.word_embedding)
 
     dataset = SemEvalDataset(args.train_filename, word_to_idx=args.word_to_idx, max_len=args.len_seq)
     dataloader = DataLoader(dataset, args.batch_size, True, num_workers=args.num_workers)
