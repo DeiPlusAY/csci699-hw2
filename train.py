@@ -35,7 +35,7 @@ def main():
     parser.add_argument('--val_filename', default='./data/test_full.txt')
     parser.add_argument('--test_filename', default='./data/test_file.txt')
     parser.add_argument('--model_file', default='./cnn.pt')
-    parser.add_argument('--embedding', default='/data/glove/glove.6B.100d.txt')
+    parser.add_argument('--embedding', default='/data/hejiang/glove/glove.6B.100d.txt')
     parser.add_argument('--bert', type=bool, default=False)
     parser.add_argument('--optimizer',  default='adam')
     
