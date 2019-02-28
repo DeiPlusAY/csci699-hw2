@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 from torch.autograd import Variable
 from model import CNN
 from read import *
+from utils import scorer
 
 def accuracy(preds, labels):
     total = preds.size(0)
@@ -109,12 +110,15 @@ def train(args, dataloader, dataloader_val, model):
         print("Epoch: {}, Training loss : {:.4}, acc: {:.4}".\
         format(i, total_loss/ntrain_batch, total_acc / ntrain_batch))
         if (i+1) % args.eval_every == 0:
-            eval(args, dataloader_val, model)
+            preds = eval(args, dataloader_val, model, gen_pred=True)
+            scorer.evaluate(get_tags(dataloader_val.dataset.train_set), preds)
     return model
 
-def eval(args, dataloader, model):
+def eval(args, dataloader, model, gen_pred=False):
     loss_func = nn.CrossEntropyLoss()
-    
+    preds = []
+    if gen_pred:
+        idx_to_tag = {v:k for (k,v) in dataloader.dataset.tag_to_idx.items()}
     # Training
     total_loss = 0.
     total_acc = 0.
@@ -138,14 +142,24 @@ def eval(args, dataloader, model):
         r = r.view(r.size(0))
 
         pred = model(seq, w_pos, e1, e2)
+        if gen_pred:
+            _, m = torch.max(pred, dim=1)
+            for p in m:
+                preds.append(idx_to_tag[p.item()])
+
         l = loss_func(pred, r)
         acc = accuracy(pred, r)
         total_acc += acc
         total_loss += l.item()
 
-    print("Val loss : {:.4}, acc: {:.4}".\
-    format(total_loss/ntrain_batch, total_acc / ntrain_batch))
+    if not gen_pred:
+        print("Val loss : {:.4}, acc: {:.4}".\
+        format(total_loss/ntrain_batch, total_acc / ntrain_batch))
 
+    if gen_pred:
+        return preds
+    else:
+        return None
 
 if __name__ == '__main__':
     main()

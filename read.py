@@ -159,6 +159,9 @@ class SemEvalDataset(torch.utils.data.Dataset):
                 max_len = len(sentence[0])
         return max_len
 
+def get_tags(sentences):
+    return [s[-1] for s in sentences]
+
 
 if __name__ == '__main__':
     #sentences = read_train('data/train_file.txt')
