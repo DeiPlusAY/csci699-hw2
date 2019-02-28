@@ -31,7 +31,7 @@ class CNN(nn.Module):
             nn.MaxPool1d(self.len_seq)
         ) for kernel_size in args.kernel_sizes])
 
-        self.fc = nn.Linear(self.dim_conv + 2 * self.dim_word, self.len_rel)
+        self.fc = nn.Linear(self.dim_conv * len(self.convs) + 2 * self.dim_word, self.len_rel)
     
     def forward(self, W, W_pos, e1, e2):
         if self.bert:
@@ -47,9 +47,8 @@ class CNN(nn.Module):
 
         conv = [conv(Wa.permute(0, 2, 1)) for conv in self.convs]
         conv = torch.cat(conv, dim=1)
-
         conv = self.dropout(conv)
-        e_concat = torch.cat([e1, e2], dim=1)
+        e_concat = torch.cat([e1_emb, e2_emb], dim=1).float()
         all_concat = torch.cat([e_concat.view(e_concat.size(0), -1), conv.view(conv.size(0), -1)], dim=1)
         out = self.fc(all_concat)
         out = F.softmax(out)

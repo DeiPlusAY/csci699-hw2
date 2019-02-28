@@ -13,7 +13,7 @@ def accuracy(preds, labels):
     total = preds.size(0)
     preds = torch.max(preds, dim=1)[1]
     correct = (preds == labels).sum()
-    acc = correct.cpu().data[0] / total
+    acc = correct.cpu().item() / total
     return acc
 
 def main():
@@ -90,7 +90,7 @@ def train(args, dataloader, model):
             l = loss_func(pred, r)
             acc = accuracy(pred, r)
             total_acc += acc
-            total_loss += l.data[0]
+            total_loss += l.item()
 
             optimizer.zero_grad()
             l.backward()
