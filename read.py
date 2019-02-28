@@ -70,14 +70,17 @@ def loadGloveModel(gloveFile):
     return model
 
 class SemEvalDataset(torch.utils.data.Dataset):
-    def __init__(self, file_name, max_len = 85, word_to_idx=None, train=True):
+    def __init__(self, file_name, max_len = 85, word_to_idx=None, tag_to_idx=None, train=True):
         self.train_set = read_train(file_name)
         self.max_len = max_len
         if word_to_idx != None:
             self.word_to_idx = word_to_idx
         else:
             self.build_dict()
-        self.build_tag_dict()
+        if tag_to_idx != None:
+            self.tag_to_idx = tag_to_idx
+        else:
+            self.build_tag_dict()
 
         if train == True:
             self.seqs, self.w_poss, self.e1s, self.e2s, self.tags = self.vectorize_seq(self.train_set)

@@ -21,8 +21,8 @@ def main():
     parser.add_argument("--dp", dest="dim_pos", type=int, default=5)
     parser.add_argument("--dc", dest="dim_conv", type=int, default=32)
     parser.add_argument("--dw", dest="dim_word", type=int, default=100)
-    parser.add_argument("--lr", type=float, default=0.01)
-    parser.add_argument("--l2", type=float, default=0.1)
+    parser.add_argument("--lr", type=float, default=0.001)
+    parser.add_argument("--l2", type=float, default=0.01)
     parser.add_argument("--l1", type=float, default=0.05)
     parser.add_argument("--len_seq", type=int, default=85)
     parser.add_argument("--len_rel", type=int, default=19)
@@ -51,7 +51,7 @@ def main():
 
     dataset = SemEvalDataset(args.train_filename, max_len=args.len_seq)
     dataloader = DataLoader(dataset, args.batch_size, True, num_workers=args.num_workers)
-    dataset_val = SemEvalDataset(args.val_filename, max_len=args.len_seq)
+    dataset_val = SemEvalDataset(args.val_filename, word_to_idx=dataset.word_to_idx, tag_to_idx=dataset.tag_to_idx, max_len=args.len_seq)
     dataloader_val = DataLoader(dataset_val, args.batch_size, True, num_workers=args.num_workers)
 
     args.len_word = len(dataset.word_to_idx)

@@ -51,7 +51,7 @@ class CNN(nn.Module):
         e_concat = torch.cat([e1_emb, e2_emb], dim=1).float()
         all_concat = torch.cat([e_concat.view(e_concat.size(0), -1), conv.view(conv.size(0), -1)], dim=1)
         out = self.fc(all_concat)
-        out = F.softmax(out)
+        out = F.softmax(out, dim=1)
 
         return out
 
