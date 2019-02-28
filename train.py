@@ -22,7 +22,7 @@ def main():
     parser.add_argument("--dc", dest="dim_conv", type=int, default=32)
     parser.add_argument("--dw", dest="dim_word", type=int, default=100)
     parser.add_argument("--lr", type=float, default=0.001)
-    parser.add_argument("--l2", type=float, default=0.01)
+    parser.add_argument("--l2", type=float, default=0.0005)
     parser.add_argument("--l1", type=float, default=0.05)
     parser.add_argument("--len_seq", type=int, default=85)
     parser.add_argument("--len_rel", type=int, default=19)
@@ -47,9 +47,10 @@ def main():
     print(args)
     if args.gpu >= 0:
         torch.cuda.set_device(args.gpu)
-    args.word_embedding = loadGloveModel(args.embedding)
+    args.word_to_idx = None
+    args.word_embedding, args.word_to_idx = loadGloveModel(args.embedding)
 
-    dataset = SemEvalDataset(args.train_filename, max_len=args.len_seq)
+    dataset = SemEvalDataset(args.train_filename, word_to_idx=args.word_to_idx, max_len=args.len_seq)
     dataloader = DataLoader(dataset, args.batch_size, True, num_workers=args.num_workers)
     dataset_val = SemEvalDataset(args.val_filename, word_to_idx=dataset.word_to_idx, tag_to_idx=dataset.tag_to_idx, max_len=args.len_seq)
     dataloader_val = DataLoader(dataset_val, args.batch_size, True, num_workers=args.num_workers)

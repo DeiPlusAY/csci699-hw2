@@ -67,7 +67,11 @@ def loadGloveModel(gloveFile):
         embedding = np.array([float(val) for val in splitLine[1:]])
         model[word] = embedding
     print ("Done.",len(model)," words loaded!")
-    return model
+    word_to_idx = {}
+    word_to_idx['<UNK>'] = 0
+    for w in model.keys():
+        word_to_idx[w] = len(word_to_idx)
+    return model, word_to_idx
 
 class SemEvalDataset(torch.utils.data.Dataset):
     def __init__(self, file_name, max_len = 85, word_to_idx=None, tag_to_idx=None, train=True):
