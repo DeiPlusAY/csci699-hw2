@@ -84,8 +84,11 @@ class BERTDataset(torch.utils.data.Dataset):
             self.build_tag_dict()
         sens = [' '.join(s[0]) for s in self.train_set]
         sens_vec = bc.encode(sens)
+        tags = np.zeros((len(sentences), 1))
         for i,s in enumerate(self.train_set):
             self.train_set[i][0] = sens_vec[i,:]
+            tags[i] = self.tag_to_idx[s[-1]]
+        self.tags = tags
 
     def build_tag_dict(self):
         self.tag_to_idx = {}
@@ -100,7 +103,7 @@ class BERTDataset(torch.utils.data.Dataset):
         return w, r
 
     def __len__(self):
-        return len(self.seqs)
+        return len(self.train_set)
 
 class SemEvalDataset(torch.utils.data.Dataset):
     def __init__(self, file_name, max_len = 85, word_to_idx=None, tag_to_idx=None, train=True):
