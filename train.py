@@ -10,6 +10,7 @@ from model import CNN
 from read import *
 from utils import scorer
 
+
 def accuracy(preds, labels):
     total = preds.size(0)
     preds = torch.max(preds, dim=1)[1]
@@ -43,15 +44,18 @@ def main():
     parser.add_argument('--optimizer',  default='adam')
     parser.add_argument('--result_file', type=str, default='test_output.txt')
     
-    
 
     args = parser.parse_args()
     args.kernel_sizes = list(map(int, args.kernel_sizes.split(',')))
+    if args.bert:
+        from bert_serving.client import BertClient
+        bc = BertClient()
     print(args)
     if args.gpu >= 0:
         torch.cuda.set_device(args.gpu)
     args.word_to_idx = None
-    args.word_embedding, args.word_to_idx = loadGloveModel(args.embedding)
+    if not args.bert:
+        args.word_embedding, args.word_to_idx = loadGloveModel(args.embedding)
     args.len_word = len(args.word_embedding)
 
     dataset = SemEvalDataset(args.train_filename, word_to_idx=args.word_to_idx, max_len=args.len_seq)
@@ -68,7 +72,7 @@ def main():
         model = CNN(args)
     model = train(args, dataloader, dataloader_val, model)
     preds = eval(args, dataloader_val, model, gen_pred=True)
-    write_preds(get_tags(preds), self.result_file)
+    write_preds(get_tags(preds), args.result_file)
 
 
 def train(args, dataloader, dataloader_val, model):

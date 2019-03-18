@@ -50,7 +50,8 @@ class CNN(nn.Module):
             e1_emb = self.word_embedding(e1)
             e2_emb = self.word_embedding(e2)
 
-        W = self.word_embedding(W)        
+        if not bert:
+            W = self.word_embedding(W)        
         W_pos = self.pos_embedding(W_pos)
         Wa = torch.cat([W, W_pos], dim=2)
         conv = [conv_f(Wa.permute((0,2,1))) for conv_f in self.convs]
@@ -70,3 +71,6 @@ class CNN(nn.Module):
 def kmax_pooling(x, dim, k):
     index = x.topk(k, dim = dim)[1].sort(dim = dim)[0]
     return x.gather(dim, index)
+
+class BERTBaseModel(nn.Module):
+    

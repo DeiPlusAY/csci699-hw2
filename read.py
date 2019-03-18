@@ -73,9 +73,33 @@ def loadGloveModel(gloveFile):
 
     return model, word_to_idx
 
+class BERTDataset(torch.utils.data.Dataset):
+    def __init__(self, file_name, tag_to_idx=None, train=True):
+        self.train_set = read_train(file_name)
+        from bert_serving.client import BertClient
+        bc = BertClient()
+        if tag_to_idx:
+            self.tag_to_idx = tag_to_idx
+        else:
+            self.build_tag_dict()
+        for i,s in enumerate(self.train_set):
+            self.train_set[i][0] = bc.encode(' '.join(s[0]))
+
+    def build_tag_dict(self):
+        self.tag_to_idx = {}
+        for sentence in self.train_set:
+            tag = sentence[-1]
+            if tag not in self.tag_to_idx:
+                self.tag_to_idx[tag] = len(self.tag_to_idx)
+    
+
 class SemEvalDataset(torch.utils.data.Dataset):
     def __init__(self, file_name, max_len = 85, word_to_idx=None, tag_to_idx=None, train=True):
-        self.train_set = read_train(file_name)
+        if train:
+            self.train_set = read_train(file_name)
+        else:
+            self.train_set = read_test(file_name)
+
         self.max_len = max_len
         if word_to_idx != None:
             self.word_to_idx = word_to_idx
@@ -172,6 +196,7 @@ if __name__ == '__main__':
     #print(sentences)
     #test_sentences = read_test('data/test_file.txt')
     #print(test_sentences)
-    model = loadGloveModel('/data/glove/glove.6B.100d.txt')
-    dataset = SemEvalDataset('data/train_file.txt', max_len=85)
-    print(dataset.get_max_len())
+    #model = loadGloveModel('/data/glove/glove.6B.100d.txt')
+    #dataset = SemEvalDataset('data/train_file.txt', max_len=85)
+    #print(dataset.get_max_len())
+    bert_dataset = BERTDataset('data/train_file.txt')
