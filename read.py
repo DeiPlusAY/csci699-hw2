@@ -95,10 +95,10 @@ class BERTDataset(torch.utils.data.Dataset):
                 self.tag_to_idx[tag] = len(self.tag_to_idx)
     
     def __getitem__(self, index):
-    w = torch.from_numpy(self.train_set[index][0])
-    r = torch.from_numpy(self.tags[index]).long()
-    return w, r
-    
+        w = torch.from_numpy(self.train_set[index][0])
+        r = torch.from_numpy(self.tags[index]).long()
+        return w, r
+        
 
 class SemEvalDataset(torch.utils.data.Dataset):
     def __init__(self, file_name, max_len = 85, word_to_idx=None, tag_to_idx=None, train=True):
