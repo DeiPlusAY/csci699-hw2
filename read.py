@@ -83,8 +83,8 @@ class BERTDataset(torch.utils.data.Dataset):
         else:
             self.build_tag_dict()
         for i,s in enumerate(self.train_set):
-            self.train_set[i][0] = bc.encode(' '.join(s[0]))
-
+            self.train_set[i][0] = bc.encode([' '.join(s[0])])
+            
     def build_tag_dict(self):
         self.tag_to_idx = {}
         for sentence in self.train_set:
