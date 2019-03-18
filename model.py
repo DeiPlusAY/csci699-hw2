@@ -81,5 +81,5 @@ class BERTBaseModel(nn.Module):
         x = self.dense1(w)
         x = F.relu(x)
         x = self.dense2(x)
-        out = F.softmax(out, dim=1)
+        out = F.softmax(x, dim=1)
         return out
