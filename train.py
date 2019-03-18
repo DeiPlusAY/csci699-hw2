@@ -32,7 +32,7 @@ def main():
     parser.add_argument("--eval_every", type=int, default=10)
     parser.add_argument("--dropout_rate", type=float, default=0.4)
     parser.add_argument("--batch_size", type=int, default=128)
-    parser.add_argument("--kernel_sizes", type=str, default="3,4,5")
+    parser.add_argument("--kernel_sizes", type=str, default="3,4,5,7")
     parser.add_argument('--gpu', type=int, default=0)
     parser.add_argument('--train_filename', default='./data/train_file.txt')
     parser.add_argument('--val_filename', default='./data/test_full.txt')
@@ -55,7 +55,7 @@ def main():
     dataset = SemEvalDataset(args.train_filename, word_to_idx=args.word_to_idx, max_len=args.len_seq)
     dataloader = DataLoader(dataset, args.batch_size, True, num_workers=args.num_workers)
     dataset_val = SemEvalDataset(args.val_filename, word_to_idx=dataset.word_to_idx, tag_to_idx=dataset.tag_to_idx, max_len=args.len_seq)
-    dataloader_val = DataLoader(dataset_val, args.batch_size, True, num_workers=args.num_workers)
+    dataloader_val = DataLoader(dataset_val, args.batch_size, False, num_workers=args.num_workers)
 
     args.len_word = len(dataset.word_to_idx)
     args.len_rel = len(dataset.tag_to_idx)
