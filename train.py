@@ -7,6 +7,7 @@ import argparse
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
 from model import CNN
+from model import BERTBaseModel
 from read import *
 from utils import scorer
 
@@ -58,22 +59,78 @@ def main():
         args.word_embedding, args.word_to_idx = loadGloveModel(args.embedding)
     args.len_word = len(args.word_embedding)
 
-    dataset = SemEvalDataset(args.train_filename, word_to_idx=args.word_to_idx, max_len=args.len_seq)
+    if args.bert:
+        dataset = BERTDataset(args.train_filename)
+        dataset_val = BERTDataset(args.val_filename, tag_to_idx=dataset.tag_to_idx)
+    else:
+        dataset = SemEvalDataset(args.train_filename, word_to_idx=args.word_to_idx, max_len=args.len_seq)
+        dataset_val = SemEvalDataset(args.val_filename, word_to_idx=dataset.word_to_idx, tag_to_idx=dataset.tag_to_idx, max_len=args.len_seq)
+    
     dataloader = DataLoader(dataset, args.batch_size, True, num_workers=args.num_workers)
-    dataset_val = SemEvalDataset(args.val_filename, word_to_idx=dataset.word_to_idx, tag_to_idx=dataset.tag_to_idx, max_len=args.len_seq)
     dataloader_val = DataLoader(dataset_val, args.batch_size, False, num_workers=args.num_workers)
 
     args.len_word = len(dataset.word_to_idx)
     args.len_rel = len(dataset.tag_to_idx)
 
-    if args.gpu >= 0:
-        model = CNN(args).cuda()
+    if args.bert:
+        if args.gpu >= 0:
+            model = BERTBaseModel().cuda()
+        else:
+            model = BERTBaseModel()
     else:
-        model = CNN(args)
-    model = train(args, dataloader, dataloader_val, model)
+        if args.gpu >= 0:
+            model = CNN(args).cuda()
+        else:
+            model = CNN(args)
+
+    if args.bert:
+        model = train_bert(args, dataloader, dataloader_val, model)
+    else:
+        model = train(args, dataloader, dataloader_val, model)
     preds = eval(args, dataloader_val, model, gen_pred=True)
     write_preds(get_tags(preds), args.result_file)
 
+
+def train_bert():
+    if args.optimizer == 'adam':
+        optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()),lr=args.lr,weight_decay=args.l2)
+    elif args.optimizer == 'sgd':
+        optimizer = optim.SGD(filter(lambda p: p.requires_grad, model.parameters()),lr=args.lr, weight_decay=args.l2)
+    loss_func = nn.CrossEntropyLoss()
+
+    best_eval_acc = 0.
+    # Training
+    total_loss = 0.
+    total_acc = 0.
+    ntrain_batch = 0
+    model.train()
+    for i in range(args.epoch):
+        for (w, r) in dataloader:
+            ntrain_batch += 1
+            if args.gpu >= 0:
+                w = Variable(w).cuda()
+                r = Variable(r).cuda()
+            else:
+                w = Variable(w)
+                r = Variable(r)
+            
+            r = r.view(r.size(0))
+
+            pred = model(w)
+            l = loss_func(pred, r)
+            acc = accuracy(pred, r)
+            total_acc += acc
+            total_loss += l.item()
+
+            optimizer.zero_grad()
+            l.backward()
+            optimizer.step()
+        print("Epoch: {}, Training loss : {:.4}, acc: {:.4}".\
+        format(i, total_loss/ntrain_batch, total_acc / ntrain_batch))
+        if (i+1) % args.eval_every == 0:
+            preds = eval(args, dataloader_val, model, gen_pred=True)
+            scorer.evaluate(get_tags(dataloader_val.dataset.train_set), preds)
+    return model
 
 def train(args, dataloader, dataloader_val, model):
     if args.optimizer == 'adam':

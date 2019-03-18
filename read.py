@@ -94,6 +94,11 @@ class BERTDataset(torch.utils.data.Dataset):
             if tag not in self.tag_to_idx:
                 self.tag_to_idx[tag] = len(self.tag_to_idx)
     
+    def __getitem__(self, index):
+    w = torch.from_numpy(self.train_set[index][0])
+    r = torch.from_numpy(self.tags[index]).long()
+    return w, r
+    
 
 class SemEvalDataset(torch.utils.data.Dataset):
     def __init__(self, file_name, max_len = 85, word_to_idx=None, tag_to_idx=None, train=True):
@@ -202,3 +207,4 @@ if __name__ == '__main__':
     #dataset = SemEvalDataset('data/train_file.txt', max_len=85)
     #print(dataset.get_max_len())
     bert_dataset = BERTDataset('data/train_file.txt')
+    print(bert_dataset.train_set)
