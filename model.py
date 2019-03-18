@@ -23,15 +23,21 @@ class CNN(nn.Module):
         # self layers
         self.word_embedding = nn.Embedding(self.len_word, self.dim_word)
         self.word_embedding.weight.data.copy_(torch.from_numpy(args.word_embedding))
+        self.word_embedding.requires_grad = False
         self.pos_embedding = nn.Embedding(3, self.dim_pos)
         self.dropout = nn.Dropout(args.dropout_rate)
-
+        '''
         self.convs = nn.ModuleList([nn.Sequential(
             nn.Conv1d(self.dim_word + self.dim_pos, self.dim_conv, kernel_size=kernel_size, padding=int((kernel_size) / 2)),
-            nn.Tanh(),
+            nn.ReLU(),
             nn.MaxPool1d(self.len_seq)
         ) for kernel_size in args.kernel_sizes])
-
+        '''
+        self.pool = nn.MaxPool1d(self.len_seq)
+        self.convs = nn.ModuleList([nn.Sequential(
+            nn.Conv2d(1, self.dim_conv, (kernel_size, self.dim_word+self.dim_pos), padding=(int(kernel_size / 2) , 0)),
+            nn.ReLU()
+        )for kernel_size in args.kernel_sizes])
         self.fc = nn.Linear(self.dim_conv * len(self.convs) + 2 * self.dim_word, self.len_rel)
     
     def forward(self, W, W_pos, e1, e2):
@@ -45,9 +51,11 @@ class CNN(nn.Module):
         W = self.word_embedding(W)        
         W_pos = self.pos_embedding(W_pos)
         Wa = torch.cat([W, W_pos], dim=2)
-
-        conv = [conv(Wa.permute(0, 2, 1)) for conv in self.convs]
+        conv = [conv_f(Wa.unsqueeze(1)).squeeze(3) for conv_f in self.convs]
+        conv = [self.pool(i) for i in conv]
+        #print([c.shape for c in conv])
         conv = torch.cat(conv, dim=1)
+
         conv = self.dropout(conv)
         e_concat = torch.cat([e1_emb, e2_emb], dim=1).float()
         all_concat = torch.cat([e_concat.view(e_concat.size(0), -1), conv.view(conv.size(0), -1)], dim=1)

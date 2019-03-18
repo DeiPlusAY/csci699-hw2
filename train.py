@@ -69,9 +69,9 @@ def main():
 
 def train(args, dataloader, dataloader_val, model):
     if args.optimizer == 'adam':
-        optimizer = optim.Adam(model.parameters(),lr=args.lr,weight_decay=args.l2)
+        optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()),lr=args.lr,weight_decay=args.l2)
     elif args.optimizer == 'sgd':
-        optimizer = optim.SGD(model.parameters(),lr=args.lr, weight_decay=args.l2)
+        optimizer = optim.SGD(filter(lambda p: p.requires_grad, model.parameters()),lr=args.lr, weight_decay=args.l2)
     loss_func = nn.CrossEntropyLoss()
 
     best_eval_acc = 0.

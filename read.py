@@ -59,7 +59,7 @@ def read_test(file_name):
 
 def loadGloveModel(gloveFile):
     print ("Loading Glove Model")
-    f = open(gloveFile,'r').readlines()
+    f = codecs.open(gloveFile,'r',encoding='utf-8').readlines()
     model = np.zeros((len(f) + 1, 100))
     word_to_idx = {}
     word_to_idx['<UNK>'] = 0
