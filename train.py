@@ -92,7 +92,7 @@ def main():
     write_preds(get_tags(preds), args.result_file)
 
 
-def train_bert():
+def train_bert(args, dataloader, dataloader_val, model):
     if args.optimizer == 'adam':
         optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()),lr=args.lr,weight_decay=args.l2)
     elif args.optimizer == 'sgd':
@@ -132,6 +132,48 @@ def train_bert():
             preds = eval(args, dataloader_val, model, gen_pred=True)
             scorer.evaluate(get_tags(dataloader_val.dataset.train_set), preds)
     return model
+
+def eval_bert(args, dataloader, model, gen_pred=False):
+    loss_func = nn.CrossEntropyLoss()
+    preds = []
+    if gen_pred:
+        idx_to_tag = {v:k for (k,v) in dataloader.dataset.tag_to_idx.items()}
+    # Training
+    total_loss = 0.
+    total_acc = 0.
+    ntrain_batch = 0
+    model.eval()
+    for (w, r) in dataloader:
+        ntrain_batch += 1
+        if args.gpu >= 0:
+            w = Variable(w).cuda()
+            r = Variable(r).cuda()
+        else:
+            w = Variable(w)
+            r = Variable(r)
+        
+        r = r.view(r.size(0))
+
+        pred = model(w)
+        if gen_pred:
+            _, m = torch.max(pred, dim=1)
+            for p in m:
+                preds.append(idx_to_tag[p.item()])
+
+        l = loss_func(pred, r)
+        acc = accuracy(pred, r)
+        total_acc += acc
+        total_loss += l.item()
+
+    if not gen_pred:
+        print("Val loss : {:.4}, acc: {:.4}".\
+        format(total_loss/ntrain_batch, total_acc / ntrain_batch))
+
+    if gen_pred:
+        return preds
+    else:
+        return None
+
 
 def train(args, dataloader, dataloader_val, model):
     if args.optimizer == 'adam':

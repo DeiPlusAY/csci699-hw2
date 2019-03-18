@@ -79,6 +79,7 @@ class BERTBaseModel(nn.Module):
         self.dense2 = nn.Linear(16,args.len_rel)
     def forward(self, w):
         x = self.dense1(w)
+        x = F.relu(x)
         x = self.dense2(x)
         out = F.softmax(out, dim=1)
         return out
