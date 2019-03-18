@@ -32,7 +32,7 @@ def main():
     parser.add_argument("--eval_every", type=int, default=10)
     parser.add_argument("--dropout_rate", type=float, default=0.4)
     parser.add_argument("--batch_size", type=int, default=128)
-    parser.add_argument("--kernel_sizes", type=str, default="3,4,5,7")
+    parser.add_argument("--kernel_sizes", type=str, default="3,4,5")
     parser.add_argument('--gpu', type=int, default=0)
     parser.add_argument('--train_filename', default='./data/train_file.txt')
     parser.add_argument('--val_filename', default='./data/test_full.txt')
