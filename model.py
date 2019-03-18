@@ -75,8 +75,8 @@ def kmax_pooling(x, dim, k):
 class BERTBaseModel(nn.Module):
     def __init__(self, args):
         super(BERTBaseModel, self).__init__()
-        self.dense1 = nn.Linear(768,16)
-        self.dense2 = nn.Linear(16,args.len_rel)
+        self.dense1 = nn.Linear(768,50)
+        self.dense2 = nn.Linear(50,args.len_rel)
     def forward(self, w):
         x = self.dense1(w)
         x = F.relu(x)

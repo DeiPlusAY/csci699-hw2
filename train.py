@@ -129,7 +129,7 @@ def train_bert(args, dataloader, dataloader_val, model):
         print("Epoch: {}, Training loss : {:.4}, acc: {:.4}".\
         format(i, total_loss/ntrain_batch, total_acc / ntrain_batch))
         if (i+1) % args.eval_every == 0:
-            preds = eval(args, dataloader_val, model, gen_pred=True)
+            preds = eval_bert(args, dataloader_val, model, gen_pred=True)
             scorer.evaluate(get_tags(dataloader_val.dataset.train_set), preds)
     return model
 
