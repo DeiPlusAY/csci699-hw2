@@ -75,9 +75,9 @@ def main():
 
     if args.bert:
         if args.gpu >= 0:
-            model = BERTBaseModel().cuda()
+            model = BERTBaseModel(args).cuda()
         else:
-            model = BERTBaseModel()
+            model = BERTBaseModel(args)
     else:
         if args.gpu >= 0:
             model = CNN(args).cuda()
