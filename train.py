@@ -28,7 +28,7 @@ def main():
     parser.add_argument("--len_seq", type=int, default=85)
     parser.add_argument("--len_rel", type=int, default=19)
     parser.add_argument("--epoch", type=int ,default=100)
-    parser.add_argument("--num_workers", type=int, default=4)
+    parser.add_argument("--num_workers", type=int, default=12)
     parser.add_argument("--eval_every", type=int, default=10)
     parser.add_argument("--dropout_rate", type=float, default=0.4)
     parser.add_argument("--batch_size", type=int, default=128)
@@ -41,6 +41,8 @@ def main():
     parser.add_argument('--embedding', default='/data/hejiang/glove/glove.6B.100d.txt')
     parser.add_argument('--bert', type=bool, default=False)
     parser.add_argument('--optimizer',  default='adam')
+    parser.add_argument('--result_file', type=str, default='test_output.txt')
+    
     
 
     args = parser.parse_args()
@@ -65,7 +67,9 @@ def main():
     else:
         model = CNN(args)
     model = train(args, dataloader, dataloader_val, model)
-    eval(args, dataloader_val, model)
+    preds = eval(args, dataloader_val, model, gen_pred=True)
+    write_preds(get_tags(preds), self.result_file)
+
 
 def train(args, dataloader, dataloader_val, model):
     if args.optimizer == 'adam':

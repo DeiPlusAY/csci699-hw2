@@ -162,6 +162,10 @@ class SemEvalDataset(torch.utils.data.Dataset):
 def get_tags(sentences):
     return [s[-1] for s in sentences]
 
+def write_preds(preds, output_path):
+    o = codecs.open(output_path,'w',encoding='utf-8')
+    for pred in preds:
+        o.write(pred + '\n')
 
 if __name__ == '__main__':
     #sentences = read_train('data/train_file.txt')
