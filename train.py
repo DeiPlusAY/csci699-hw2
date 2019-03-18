@@ -57,7 +57,7 @@ def main():
     args.word_to_idx = None
     if not args.bert:
         args.word_embedding, args.word_to_idx = loadGloveModel(args.embedding)
-    args.len_word = len(args.word_embedding)
+        args.len_word = len(args.word_embedding)
 
     if args.bert:
         dataset = BERTDataset(args.train_filename)
@@ -65,11 +65,12 @@ def main():
     else:
         dataset = SemEvalDataset(args.train_filename, word_to_idx=args.word_to_idx, max_len=args.len_seq)
         dataset_val = SemEvalDataset(args.val_filename, word_to_idx=dataset.word_to_idx, tag_to_idx=dataset.tag_to_idx, max_len=args.len_seq)
+        
+        args.len_word = len(dataset.word_to_idx)
     
     dataloader = DataLoader(dataset, args.batch_size, True, num_workers=args.num_workers)
     dataloader_val = DataLoader(dataset_val, args.batch_size, False, num_workers=args.num_workers)
 
-    args.len_word = len(dataset.word_to_idx)
     args.len_rel = len(dataset.tag_to_idx)
 
     if args.bert:
