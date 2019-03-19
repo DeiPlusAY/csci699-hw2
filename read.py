@@ -151,10 +151,10 @@ class BERTContextualDataset(torch.utils.data.Dataset):
         return len(self.seqs)
 
     def __getitem__(self, index):
-        seq = torch.from_numpy(self.seqs[index]).long()
+        seq = torch.from_numpy(self.seqs[index]).float()
         w_pos = torch.from_numpy(self.w_poss[index]).long()
-        e1 = torch.from_numpy(self.e1s[index]).long()
-        e2 = torch.from_numpy(self.e2s[index]).long()
+        e1 = torch.from_numpy(self.e1s[index]).float()
+        e2 = torch.from_numpy(self.e2s[index]).float()
         r = torch.from_numpy(self.tags[index]).long()
         return seq, w_pos, e1, e2, r
     
