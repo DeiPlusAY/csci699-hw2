@@ -119,7 +119,7 @@ class BERTContextualDataset(torch.utils.data.Dataset):
         else:
             self.build_tag_dict()
 
-            self.seqs, self.w_poss, self.e1s, self.e2s, self.tags = self.vectorize_seq(self.train_set)
+        self.seqs, self.w_poss, self.e1s, self.e2s, self.tags = self.vectorize_seq(self.train_set)
 
     def build_tag_dict(self):
         self.tag_to_idx = {}
