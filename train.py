@@ -91,7 +91,7 @@ def main():
     else:
         model = train(args, dataloader, dataloader_val, model)
         preds = eval(args, dataloader_val, model, gen_pred=True)
-    write_preds(get_tags(preds), args.result_file)
+    write_preds(preds, args.result_file)
 
 
 def train_bert(args, dataloader, dataloader_val, model):
@@ -265,7 +265,7 @@ def eval(args, dataloader, model, gen_pred=False):
     if not gen_pred:
         print("Val loss : {:.4}, acc: {:.4}".\
         format(total_loss/ntrain_batch, total_acc / ntrain_batch))
-    print(preds)
+
     if gen_pred:
         return preds
     else:
