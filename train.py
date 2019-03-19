@@ -265,7 +265,7 @@ def eval(args, dataloader, model, gen_pred=False):
     if not gen_pred:
         print("Val loss : {:.4}, acc: {:.4}".\
         format(total_loss/ntrain_batch, total_acc / ntrain_batch))
-
+    print(pred)
     if gen_pred:
         return preds
     else:
