@@ -52,9 +52,12 @@ class CNN(nn.Module):
             e1_emb = self.word_embedding(e1)
             e2_emb = self.word_embedding(e2)
 
+        W = W.float()
         if not self.bert:
             W = self.word_embedding(W)
-        W_pos = self.pos_embedding(W_pos)
+        W_pos = self.pos_embedding(W_pos).float()
+        print(W.shape)
+        print(W_pos.shape)
         Wa = torch.cat([W, W_pos], dim=2)
         conv = [conv_f(Wa.permute((0,2,1))) for conv_f in self.convs]
         #conv = [conv_f(Wa.unsqueeze(1)).squeeze(3) for conv_f in self.convs]
