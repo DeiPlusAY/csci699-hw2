@@ -135,8 +135,8 @@ class BERTContextualDataset(torch.utils.data.Dataset):
         sens = [' '.join(s[0]) for s in self.train_set]
         seqs = bc.encode(sens)
         w_poss = np.zeros((len(sentences), self.max_len))
-        e1s = np.zeros((len(sentences), 1))
-        e2s = np.zeros((len(sentences), 1))
+        e1s = np.zeros((len(sentences), 768))
+        e2s = np.zeros((len(sentences), 768))
         tags = np.zeros((len(sentences), 1))
         for r, (words, e1, e2, tag) in enumerate(sentences):
             w_poss[r, e1] = 1

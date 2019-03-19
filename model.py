@@ -44,8 +44,8 @@ class CNN(nn.Module):
     
     def forward(self, W, W_pos, e1, e2):
         if self.bert:
-            e1_emb = W[:,e1]
-            e2_emb = W[:,e2]
+            e1_emb = e1
+            e2_emb = e2
         else:
             e1_emb = self.word_embedding(e1)
             e2_emb = self.word_embedding(e2)
