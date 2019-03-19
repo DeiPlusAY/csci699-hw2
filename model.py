@@ -14,16 +14,18 @@ class CNN(nn.Module):
 
         # shape of dicts
         #self.len_pos = args.len_pos
-        self.len_word = args.len_word
+        if not args.bert:
+            self.len_word = args.len_word
         self.len_rel = args.len_rel
         
         # sequence
         self.len_seq = args.len_seq
 
         # self layers
-        self.word_embedding = nn.Embedding(self.len_word, self.dim_word)
-        self.word_embedding.weight.data.copy_(torch.from_numpy(args.word_embedding))
-        self.word_embedding.requires_grad = False
+        if not args.bert:
+            self.word_embedding = nn.Embedding(self.len_word, self.dim_word)
+            self.word_embedding.weight.data.copy_(torch.from_numpy(args.word_embedding))
+            self.word_embedding.requires_grad = False
         self.pos_embedding = nn.Embedding(3, self.dim_pos)
         self.dropout = nn.Dropout(args.dropout_rate)
 
