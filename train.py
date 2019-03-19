@@ -49,9 +49,6 @@ def main():
 
     args = parser.parse_args()
     args.kernel_sizes = list(map(int, args.kernel_sizes.split(',')))
-    if args.bert:
-        from bert_serving.client import BertClient
-        bc = BertClient()
     print(args)
     if args.gpu >= 0:
         torch.cuda.set_device(args.gpu)

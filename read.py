@@ -129,6 +129,8 @@ class BERTContextualDataset(torch.utils.data.Dataset):
                 self.tag_to_idx[tag] = len(self.tag_to_idx)
 
     def vectorize_seq(self, sentences):
+        from bert_serving.client import BertClient
+        bc = BertClient()
         
         sens = [' '.join(s[0]) for s in self.train_set]
         seqs = bc.encode(sens)
