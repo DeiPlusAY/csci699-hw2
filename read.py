@@ -141,8 +141,8 @@ class BERTContextualDataset(torch.utils.data.Dataset):
         for r, (words, e1, e2, tag) in enumerate(sentences):
             w_poss[r, e1] = 1
             w_poss[r, e2] = 2
-            e1s[r] = vec_words[e1]
-            e2s[r] = vec_words[e2]
+            e1s[r] = seqs[r, e1]
+            e2s[r] = seqs[r, e2]
             tags[r] = self.tag_to_idx[tag]
         return seqs, w_poss, e1s, e2s, tags
     
