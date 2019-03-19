@@ -105,6 +105,66 @@ class BERTDataset(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.train_set)
 
+class BERTContextualDataset(torch.utils.data.Dataset):
+    def __init__(self, file_name, max_len = 85, word_to_idx=None, tag_to_idx=None, train=True):
+        if train:
+            self.train_set = read_train(file_name)
+        else:
+            self.train_set = read_test(file_name)
+
+        self.max_len = max_len
+
+        if tag_to_idx != None:
+            self.tag_to_idx = tag_to_idx
+        else:
+            self.build_tag_dict()
+
+            self.seqs, self.w_poss, self.e1s, self.e2s, self.tags = self.vectorize_seq(self.train_set)
+
+    def build_tag_dict(self):
+        self.tag_to_idx = {}
+        for sentence in self.train_set:
+            tag = sentence[-1]
+            if tag not in self.tag_to_idx:
+                self.tag_to_idx[tag] = len(self.tag_to_idx)
+
+    def vectorize_seq(self, sentences):
+        
+        sens = [' '.join(s[0]) for s in self.train_set]
+        seqs = bc.encode(sens)
+        w_poss = np.zeros((len(sentences), self.max_len))
+        e1s = np.zeros((len(sentences), 1))
+        e2s = np.zeros((len(sentences), 1))
+        tags = np.zeros((len(sentences), 1))
+        for r, (words, e1, e2, tag) in enumerate(sentences):
+            w_poss[r, e1] = 1
+            w_poss[r, e2] = 2
+            e1s[r] = vec_words[e1]
+            e2s[r] = vec_words[e2]
+            tags[r] = self.tag_to_idx[tag]
+        return seqs, w_poss, e1s, e2s, tags
+    
+
+    def __len__(self):
+        return len(self.seqs)
+
+    def __getitem__(self, index):
+        seq = torch.from_numpy(self.seqs[index]).long()
+        w_pos = torch.from_numpy(self.w_poss[index]).long()
+        e1 = torch.from_numpy(self.e1s[index]).long()
+        e2 = torch.from_numpy(self.e2s[index]).long()
+        r = torch.from_numpy(self.tags[index]).long()
+        return seq, w_pos, e1, e2, r
+    
+    def get_max_len(self):
+        max_len = 0
+        for sentence in self.train_set:
+            if len(sentence[0]) > max_len:
+                max_len = len(sentence[0])
+        return max_len
+
+
+
 class SemEvalDataset(torch.utils.data.Dataset):
     def __init__(self, file_name, max_len = 85, word_to_idx=None, tag_to_idx=None, train=True):
         if train:

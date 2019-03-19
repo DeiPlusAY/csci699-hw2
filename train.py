@@ -24,6 +24,7 @@ def main():
     parser.add_argument("--dp", dest="dim_pos", type=int, default=5)
     parser.add_argument("--dc", dest="dim_conv", type=int, default=32)
     parser.add_argument("--dw", dest="dim_word", type=int, default=100)
+    parser.add_argument("--dbert", dest="dim_bert", type=int, default=50)
     parser.add_argument("--lr", type=float, default=0.001)
     parser.add_argument("--l2", type=float, default=0.0005)
     parser.add_argument("--l1", type=float, default=0.05)
@@ -41,7 +42,7 @@ def main():
     parser.add_argument('--test_filename', default='./data/test_file.txt')
     parser.add_argument('--model_file', default='./cnn.pt')
     parser.add_argument('--embedding', default='/data/hejiang/glove/glove.6B.100d.txt')
-    parser.add_argument('--bert', type=bool, default=False)
+    parser.add_argument('--bert', type=str, default=None)
     parser.add_argument('--optimizer',  default='adam')
     parser.add_argument('--result_file', type=str, default='test_output.txt')
     
@@ -59,9 +60,12 @@ def main():
         args.word_embedding, args.word_to_idx = loadGloveModel(args.embedding)
         args.len_word = len(args.word_embedding)
 
-    if args.bert:
+    if args.bert == 'pooled':
         dataset = BERTDataset(args.train_filename)
         dataset_val = BERTDataset(args.val_filename, tag_to_idx=dataset.tag_to_idx)
+    elif args.bert == 'contextual':
+        dataset = BERTContextualDataset(args.train_filename, max_len=args.len_seq)
+        dataset_val = BERTContextualDataset(args.val_filename, tag_to_idx=dataset.tag_to_idx,max_len=args.len_seq)
     else:
         dataset = SemEvalDataset(args.train_filename, word_to_idx=args.word_to_idx, max_len=args.len_seq)
         dataset_val = SemEvalDataset(args.val_filename, word_to_idx=dataset.word_to_idx, tag_to_idx=dataset.tag_to_idx, max_len=args.len_seq)
@@ -73,7 +77,7 @@ def main():
 
     args.len_rel = len(dataset.tag_to_idx)
 
-    if args.bert:
+    if args.bert == 'pooled':
         if args.gpu >= 0:
             model = BERTBaseModel(args).cuda()
         else:
@@ -84,11 +88,12 @@ def main():
         else:
             model = CNN(args)
 
-    if args.bert:
+    if args.bert == 'pooled':
         model = train_bert(args, dataloader, dataloader_val, model)
+        preds = eval_bert(args, dataloader_val, model, gen_pred=True)
     else:
         model = train(args, dataloader, dataloader_val, model)
-    preds = eval(args, dataloader_val, model, gen_pred=True)
+        preds = eval(args, dataloader_val, model, gen_pred=True)
     write_preds(get_tags(preds), args.result_file)
 
 

@@ -50,8 +50,8 @@ class CNN(nn.Module):
             e1_emb = self.word_embedding(e1)
             e2_emb = self.word_embedding(e2)
 
-        if not bert:
-            W = self.word_embedding(W)        
+        if not self.bert:
+            W = self.word_embedding(W)
         W_pos = self.pos_embedding(W_pos)
         Wa = torch.cat([W, W_pos], dim=2)
         conv = [conv_f(Wa.permute((0,2,1))) for conv_f in self.convs]
@@ -75,11 +75,16 @@ def kmax_pooling(x, dim, k):
 class BERTBaseModel(nn.Module):
     def __init__(self, args):
         super(BERTBaseModel, self).__init__()
-        self.dense1 = nn.Linear(768,50)
-        self.dense2 = nn.Linear(50,args.len_rel)
+        if args.dim_bert > 0:
+            self.dense1 = nn.Linear(768,args.dim_bert)
+            self.dense2 = nn.Linear(args.dim_bert,args.len_rel)
+        else:
+            self.dense1 = nn.Linear(768,args.len_rel)
+        self.dim_bert = args.dim_bert
     def forward(self, w):
         x = self.dense1(w)
-        x = F.relu(x)
-        x = self.dense2(x)
+        if self.dim_bert > 0:
+            x = F.relu(x)
+            x = self.dense2(x)
         out = F.softmax(x, dim=1)
         return out
